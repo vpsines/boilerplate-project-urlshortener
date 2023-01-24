@@ -3,6 +3,8 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const bodyParser = require("body-parser");
+const dns = require("dns");
+var URL = require('url').URL;
 
 // Basic Configuration
 const port = process.env.PORT || 3000;
@@ -28,16 +30,27 @@ app.post("/api/shorturl", function (req, res) {
   // get original and short url
   var originalUrl = req.body.url;
   var shortUrl = Math.floor(Math.random() * 100) + 1;
+  let erroResponse = { error: "invalid url" };
 
-  // check if key already exists, if so generate new key
-  while (!(shortUrl.toString() in urls)) {
-    shortUrl = Math.floor(Math.random() * 100) + 1;
+  try {
+    // create an url object
+    var url = new URL(originalUrl);
+
+    dns.lookup(url.hostname, (err, address, family) => {
+      if (err) return res.json(erroResponse);
+      // check if key already exists, if so generate new key
+      while (shortUrl.toString() in urls) {
+        shortUrl = Math.floor(Math.random() * 100) + 1;
+      }
+
+      let data = { original_url: originalUrl, short_url: shortUrl };
+      urls[shortUrl] = originalUrl;
+      // send data
+      res.json(data);
+    });
+  } catch (err) {
+    res.json(erroResponse);
   }
-
-  let data = { original_url: originalUrl, short_url: shortUrl };
-  urls[shortUrl] = originalUrl;
-  // send data
-  res.json(data);
 });
 
 app.get("/api/shorturl/:short_url", (req, res) => {
