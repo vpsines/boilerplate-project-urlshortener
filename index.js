@@ -30,14 +30,14 @@ app.post("/api/shorturl", function (req, res) {
   // get original and short url
   var originalUrl = req.body.url;
   var shortUrl = Math.floor(Math.random() * 100) + 1;
-  let erroResponse = { error: "invalid url" };
+  let errorResponse = { error: "invalid url" };
 
   try {
     // create an url object
     var url = new URL(originalUrl);
 
     dns.lookup(url.hostname, (err, address, family) => {
-      if (err) return res.json(erroResponse);
+      if (err) return res.json(errorResponse);
       // check if key already exists, if so generate new key
       while (shortUrl.toString() in urls) {
         shortUrl = Math.floor(Math.random() * 100) + 1;
@@ -49,7 +49,7 @@ app.post("/api/shorturl", function (req, res) {
       res.json(data);
     });
   } catch (err) {
-    res.json(erroResponse);
+    res.json(errorResponse);
   }
 });
 
